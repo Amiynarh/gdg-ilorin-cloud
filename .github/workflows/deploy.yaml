@@ -1,0 +1,27 @@
+name: Deploy to GKE
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    # Authenticate to Google Cloud (The Security Guard)
+    - uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    # Build the Docker Image (Packing the box)
+    - name: Build & Push Docker Image
+      run: |
+        docker build -t us-central1-docker.pkg.dev/PROJECT_ID/REPO/app:$GITHUB_SHA .
+        docker push us-central1-docker.pkg.dev/PROJECT_ID/REPO/app:$GITHUB_SHA
+
+    # Tell Kubernetes to Update (The Delivery)
+    - name: Deploy to GKE
+      run: |
+        kubectl set image deployment/ilorin-app ilorin-app=...:$GITHUB_SHA
