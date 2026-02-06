@@ -5,7 +5,7 @@ metadata:
   labels:
     app: ilorin-watch
 spec:
-  replicas: 3  
+  replicas: 2
   selector:
     matchLabels:
       app: ilorin-watch
@@ -18,7 +18,7 @@ spec:
       - name: ilorin-app
         # This is a placeholder. The CI/CD pipeline will replace "LATEST" 
         # with the actual commit hash automatically.
-        image: eu-west1-docker.pkg.dev/aminalawal/ilorin-app-repo/app:latest
+        image: us-central1-docker.pkg.dev/aminalawal/ilorin-app-repo/app:latest
         ports:
         - containerPort: 80
         resources:
