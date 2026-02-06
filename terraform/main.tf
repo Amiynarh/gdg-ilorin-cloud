@@ -1,35 +1,35 @@
 provider "google" {
-  project = "aminas-project"
-  region  = "us-central1"
+  project = var.project_id
+  region  = var.region
 }
 
-# 1. The Warehouse (Artifact Registry)
+# 1. Artifact Registry — stores our Docker images
 resource "google_artifact_registry_repository" "repo" {
-  location      = "us-central1"
+  location      = var.region
   repository_id = "ilorin-app-repo"
   format        = "DOCKER"
 }
 
-# 2. The City (GKE Cluster)
+# 2. GKE Cluster
 resource "google_container_cluster" "primary" {
-  name     = "ilorin-city-cluster"
-  location = "us-central1-a"
-  
-  # We start small - 1 node to save money (The "Village" size)
-  initial_node_count = 1 
+  name     = var.cluster_name
+  location = var.zone
 
-  # But we enable the magic...
+  # Remove the default node pool — we define our own below
+  remove_default_node_pool = true
+  initial_node_count       = 1
+
   deletion_protection = false
 }
 
-# 3. The Workers (Node Pool)
+# 3. Node Pool — the VMs that Kubernetes runs on
 resource "google_container_node_pool" "primary_nodes" {
   name       = "my-node-pool"
   cluster    = google_container_cluster.primary.id
-  node_count = 2 # Scaling up to 2 workers
+  node_count = var.node_count
 
   node_config {
-    machine_type = "e2-medium" # Affordable standard machine
+    machine_type = var.machine_type
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform"
     ]
