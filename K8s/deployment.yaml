@@ -18,9 +18,9 @@ spec:
       - name: ilorin-app
         # This is a placeholder. The CI/CD pipeline will replace "LATEST" 
         # with the actual commit hash automatically.
-        image: us-central1-docker.pkg.dev/YOUR_PROJECT_ID/ilorin-app-repo/app:latest
+        image: eu-west1-docker.pkg.dev/aminalawal/ilorin-app-repo/app:latest
         ports:
-        - containerPort: 8080
+        - containerPort: 80
         resources:
           limits:
             memory: "128Mi"
