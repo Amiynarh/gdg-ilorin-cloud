@@ -4,24 +4,56 @@ on:
   push:
     branches: [ "main" ]
 
+# ──────────────────────────────────────────────────────────────
+# Configuration — update these values if you fork this repo
+# ──────────────────────────────────────────────────────────────
+env:
+  PROJECT_ID: aminalawal
+  REGION: eu-west1
+  REPO_NAME: ilorin-app-repo
+  CLUSTER_NAME: ilorin-city-cluster
+  CLUSTER_ZONE: eu-west1-b
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
 
-    # Authenticate to Google Cloud (The Security Guard)
-    - uses: google-github-actions/auth@v1
+    steps:
+    # Step 1: Pull the latest code
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # Step 2: Authenticate to Google Cloud using the secret key
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
       with:
         credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-    # Build the Docker Image (Packing the box)
-    - name: Build & Push Docker Image
-      run: |
-        docker build -t us-central1-docker.pkg.dev/PROJECT_ID/REPO/app:$GITHUB_SHA .
-        docker push us-central1-docker.pkg.dev/PROJECT_ID/REPO/app:$GITHUB_SHA
+    # Step 3: Install the gcloud CLI
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
 
-    # Tell Kubernetes to Update (The Delivery)
+    # Step 4: Let Docker push to Artifact Registry
+    - name: Configure Docker for Artifact Registry
+      run: gcloud auth configure-docker $REGION-docker.pkg.dev --quiet
+
+    # Step 5: Build the Docker image, tagged with the commit hash
+    - name: Build Docker Image
+      run: docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/app:$GITHUB_SHA app/
+
+    # Step 6: Push the image to Artifact Registry
+    - name: Push Docker Image
+      run: docker push $REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/app:$GITHUB_SHA
+
+    # Step 7: Connect to the GKE cluster
+    - name: Get GKE Credentials
+      uses: google-github-actions/get-gke-credentials@v2
+      with:
+        cluster_name: ${{ env.CLUSTER_NAME }}
+        location: ${{ env.CLUSTER_ZONE }}
+
+    # Step 8: Replace "latest" with the commit hash, then apply manifests
     - name: Deploy to GKE
       run: |
-        kubectl set image deployment/ilorin-app ilorin-app=...:$GITHUB_SHA
+        sed -i "s/latest/$GITHUB_SHA/g" K8s/deployment.yaml
+        kubectl apply -f K8s/
