@@ -18,7 +18,7 @@ GitHub Actions ─────────────────────�
   │  5. kubectl apply → rolling update on GKE
   │
   ▼
-Google Cloud (eu-west1) ────────────────────────────────────────
+Google Cloud (us-central1) ────────────────────────────────────────
 
   ┌──────────────────┐      ┌─────────────────────────────┐
   │ Artifact Registry│      │       GKE Cluster            │
@@ -154,15 +154,11 @@ This creates:
 
 ```bash
 # Connect kubectl to the cluster
-gcloud container clusters get-credentials ilorin-city-cluster --zone eu-west1-b
+gcloud container clusters get-credentials ilorin-city-cluster --zone us-central1-a
 
-# Configure Docker for Artifact Registry
-gcloud auth configure-docker eu-west1-docker.pkg.dev
-
-# Build and push the initial image
+# Build and push the initial image using Cloud Build
 cd ../app
-docker build -t eu-west1-docker.pkg.dev/YOUR_PROJECT_ID/ilorin-app-repo/app:v1 .
-docker push eu-west1-docker.pkg.dev/YOUR_PROJECT_ID/ilorin-app-repo/app:v1
+gcloud builds submit --tag us-central1-docker.pkg.dev/YOUR_PROJECT_ID/ilorin-app-repo/app:v1
 
 # Temporarily set the image tag to v1 for initial deploy
 # In K8s/deployment.yaml, change ":latest" to ":v1"
@@ -206,7 +202,7 @@ If you want to use this for your own project, update these values:
 
 ```bash
 # Connect to your cluster
-gcloud container clusters get-credentials ilorin-city-cluster --zone eu-west1-b
+gcloud container clusters get-credentials ilorin-city-cluster --zone us-central1-a
 
 # List running pods
 kubectl get pods
