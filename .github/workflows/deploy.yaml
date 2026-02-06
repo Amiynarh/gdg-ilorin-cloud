@@ -9,10 +9,10 @@ on:
 # ──────────────────────────────────────────────────────────────
 env:
   PROJECT_ID: aminalawal
-  REGION: eu-west1
+  REGION: us-central1
   REPO_NAME: ilorin-app-repo
   CLUSTER_NAME: ilorin-city-cluster
-  CLUSTER_ZONE: eu-west1-b
+  CLUSTER_ZONE: us-central1-a
 
 jobs:
   build-and-deploy:
